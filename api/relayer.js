@@ -19,7 +19,14 @@ interface RelayRequest {
 const PROVIDER_URL = process.env.BRISE_RPC!;
 const RELAYER_PRIVATE_KEY = process.env.RELAYER_KEY!;
 const RELAYER_CONTRACT = process.env.RELAYER_CONTRACT!;
-
+// Bovenaan de handler, tijdelijk
+console.log("ENV CHECK:", {
+  hasRPC: !!PROVIDER_URL,
+  hasKey: !!RELAYER_PRIVATE_KEY,
+  hasContract: !!RELAYER_CONTRACT,
+  relayerAddress: relayerWallet.address,
+  contractAddress: RELAYER_CONTRACT
+});
 // Validatie
 if (!PROVIDER_URL || !RELAYER_PRIVATE_KEY || !RELAYER_CONTRACT) {
   throw new Error("Missing required environment variables");
