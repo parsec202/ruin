@@ -1,7 +1,71 @@
 import { ethers } from "ethers";
 
 export default async function handler(req, res) {
-  // Only allow POST
+  // GET request - return info
+  if (req.method === "GET") {
+    try {
+      const PROVIDER_URL = process.env.BRISE_RPC;
+      const RELAYER_PRIVATE_KEY = process.env.RELAYER_KEY;
+      const RELAYER_CONTRACT = process.env.RELAYER_CONTRACT;
+
+      const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
+      const relayerWallet = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
+
+      // Get relayer wallet balance
+      const balance = await provider.getBalance(relayerWallet.address);
+
+      // Get contract info
+      const relayerContractInstance = new ethers.Contract(
+        RELAYER_CONTRACT,
+        [
+          "function getBalance() view returns (uint256)",
+          "function refillThreshold() view returns (uint256)",
+          "function refillAmount() view returns (uint256)",
+          "function relayWallets(address) view returns (bool)"
+        ],
+        provider
+      );
+
+      const contractBalance = await relayerContractInstance.getBalance();
+      const threshold = await relayerContractInstance.refillThreshold();
+      const refillAmount = await relayerContractInstance.refillAmount();
+      const isWhitelisted = await relayerContractInstance.relayWallets(relayerWallet.address);
+
+      return res.status(200).json({
+        status: "Relayer API Online",
+        relayerAddress: relayerWallet.address,
+        relayerBalance: ethers.formatEther(balance) + " ETH",
+        contractAddress: RELAYER_CONTRACT,
+        contractBalance: ethers.formatEther(contractBalance) + " ETH",
+        refillThreshold: ethers.formatEther(threshold) + " ETH",
+        refillAmount: ethers.formatEther(refillAmount) + " ETH",
+        isRelayerWhitelisted: isWhitelisted,
+        ready: isWhitelisted && contractBalance > threshold,
+        usage: {
+          method: "POST",
+          endpoint: "/api/relayer",
+          body: {
+            metaTx: {
+              from: "address",
+              target: "address",
+              selector: "bytes4",
+              data: "bytes",
+              nonce: "uint256",
+              deadline: "uint256"
+            },
+            signature: "bytes"
+          }
+        }
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "Error",
+        error: err.message
+      });
+    }
+  }
+
+  // Only allow POST for relay
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
