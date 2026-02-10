@@ -1,4 +1,3 @@
-import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.10.0/+esm";
 
 export default async function handler(req, res) {
   // ============== CORS HEADERS ==============
