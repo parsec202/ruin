@@ -18,14 +18,6 @@ export default async function handler(req, res) {
       const RELAYER_PRIVATE_KEY = process.env.RELAYER_KEY;
       const RELAYER_CONTRACT = process.env.RELAYER_CONTRACT;
 
-      // Basic validation
-      if (!PROVIDER_URL || !RELAYER_PRIVATE_KEY || !RELAYER_CONTRACT) {
-        return res.status(500).json({
-          status: "Configuration Error",
-          error: "Missing environment variables"
-        });
-      }
-
       // Simple response zonder blockchain calls
       return res.status(200).json({
         status: "Relayer API Online",
