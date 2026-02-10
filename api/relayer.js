@@ -1,6 +1,16 @@
 import { ethers } from "ethers";
 
 export default async function handler(req, res) {
+  // ============== CORS HEADERS ==============
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Of specifiek: 'http://localhost'
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // GET request - return info
   if (req.method === "GET") {
     try {
@@ -11,10 +21,6 @@ export default async function handler(req, res) {
       const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
       const relayerWallet = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
 
-      // Get relayer wallet balance
-      const balance = await provider.getBalance(relayerWallet.address);
-
-      // Get contract info
       const relayerContractInstance = new ethers.Contract(
         RELAYER_CONTRACT,
         [
@@ -26,6 +32,7 @@ export default async function handler(req, res) {
         provider
       );
 
+      const balance = await provider.getBalance(relayerWallet.address);
       const contractBalance = await relayerContractInstance.getBalance();
       const threshold = await relayerContractInstance.refillThreshold();
       const refillAmount = await relayerContractInstance.refillAmount();
